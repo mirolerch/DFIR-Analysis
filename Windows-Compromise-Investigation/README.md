@@ -40,7 +40,7 @@ A Windows workstation was flagged for investigation after exhibiting suspicious 
 **Scope:**
 - Host-based investigation on a single Windows workstation
 - No lateral movement confirmed at time of investigation
-- User account in scope: `tcm`
+- User account in scope: `psaa`
 
 ---
 
@@ -163,7 +163,7 @@ Three default Windows administrative shares were present (`C$`, `IPC$`, `ADMIN$`
 
 | Share Name | Resource Path | Notes |
 |---|---|---|
-| `xkalibur` | `C:\Users\tcm\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Attacker-created — points to Temp directory |
+| `xkalibur` | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Attacker-created — points to Temp directory |
 
 ```
 Share name   Resource
@@ -171,7 +171,7 @@ Share name   Resource
 C$           C:\
 IPC$
 ADMIN$       C:\WINDOWS
-xkalibur     C:\Users\tcm\AppData\Local\Temp\46d5b8556d0d3e30ec1
+xkalibur     C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1
 ```
 
 **Screenshot:**
@@ -198,11 +198,11 @@ One legitimate entry (`MicrosoftEdgeAutoLaunch`) and one malicious entry were id
 | Entry Name | Value | Assessment |
 |---|---|---|
 | `MicrosoftEdgeAutoLaunch_8D33...` | `msedge.exe --win-session-start` | Legitimate |
-| `CleanUpController` | `C:\Users\tcm\Downloads\wininit.exe` | **MALICIOUS** |
+| `CleanUpController` | `C:\Users\psaa\Downloads\wininit.exe` | **MALICIOUS** |
 
 ```
 HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
-    CleanUpController    REG_SZ    C:\Users\tcm\Downloads\wininit.exe
+    CleanUpController    REG_SZ    C:\Users\psaa\Downloads\wininit.exe
 ```
 
 **Full Registry Key Path:**
@@ -236,7 +236,7 @@ A backdoor service named `WindowsActiveService` was found configured for automat
 |---|---|
 | Service Name | `WindowsActiveService` |
 | Start Type | `AUTO_START` (2) |
-| Binary Path | `C:\Users\tcm\Documents\svcbackdoor.exe` |
+| Binary Path | `C:\Users\psaa\Documents\svcbackdoor.exe` |
 | Run As | `LocalSystem` |
 | State at Discovery | `STOPPED` |
 
@@ -244,7 +244,7 @@ A backdoor service named `WindowsActiveService` was found configured for automat
 SERVICE_NAME: WindowsActiveService
     TYPE               : 10  WIN32_OWN_PROCESS
     START_TYPE         : 2  AUTO_START
-    BINARY_PATH_NAME   : C:\Users\tcm\Documents\svcbackdoor.exe
+    BINARY_PATH_NAME   : C:\Users\psaa\Documents\svcbackdoor.exe
     SERVICE_START_NAME : LocalSystem
 ```
 
@@ -271,7 +271,7 @@ schtasks /query /fo LIST /v /tn "ayttpnzc"
 | Property | Value |
 |---|---|
 | Task Name | `ayttpnzc` |
-| Executable | `C:\Users\tcm\Downloads\beac0n.exe` |
+| Executable | `C:\Users\psaa\Downloads\beac0n.exe` |
 | Next Run Time | `2026-06-23 03:30:00` |
 | Status | `Ready` |
 
@@ -295,14 +295,14 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 | Network Port | `TCP/50050` | Active C2 listener |
 | Process | `challenge.exe` (PID 12184) | Malicious listener process |
 | SMB Share | `xkalibur` | Attacker-created share |
-| Share Path | `C:\Users\tcm\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Staging directory |
+| Share Path | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Staging directory |
 | Registry Key | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` | Persistence location |
 | Registry Entry | `CleanUpController` | Malicious Run key entry |
-| File | `C:\Users\tcm\Downloads\wininit.exe` | Run key payload |
+| File | `C:\Users\psaa\Downloads\wininit.exe` | Run key payload |
 | Service | `WindowsActiveService` | Backdoor service |
-| File | `C:\Users\tcm\Documents\svcbackdoor.exe` | Service binary |
+| File | `C:\Users\psaa\Documents\svcbackdoor.exe` | Service binary |
 | Scheduled Task | `ayttpnzc` | Timed execution task |
-| File | `C:\Users\tcm\Downloads\beac0n.exe` | Beacon payload |
+| File | `C:\Users\psaa\Downloads\beac0n.exe` | Beacon payload |
 
 ---
 
@@ -358,13 +358,13 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 - [ ] Delete scheduled task: `schtasks /delete /tn "ayttpnzc" /f`
 
 ### File System Cleanup
-- [ ] Remove `C:\Users\tcm\Downloads\wininit.exe`
-- [ ] Remove `C:\Users\tcm\Documents\svcbackdoor.exe`
-- [ ] Remove `C:\Users\tcm\Downloads\beac0n.exe`
-- [ ] Remove staging directory: `C:\Users\tcm\AppData\Local\Temp\46d5b8556d0d3e30ec1\`
+- [ ] Remove `C:\Users\psaa\Downloads\wininit.exe`
+- [ ] Remove `C:\Users\psaa\Documents\svcbackdoor.exe`
+- [ ] Remove `C:\Users\psaa\Downloads\beac0n.exe`
+- [ ] Remove staging directory: `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1\`
 
 ### Post-Incident
-- [ ] Review authentication logs for the `tcm` account for signs of lateral movement
+- [ ] Review authentication logs for the `psaa` account for signs of lateral movement
 - [ ] Submit all binaries to VirusTotal and sandbox for behavioral analysis
 - [ ] Check other workstations on the same subnet for identical IOCs
 - [ ] Patch or harden the initial access vector once identified
@@ -374,4 +374,3 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 ---
 
 *Investigation conducted on an isolated forensic workstation. All persistence mechanisms were confirmed removed and the system was verified clean prior to return to service.*
-
