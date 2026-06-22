@@ -120,7 +120,7 @@ Two notable DLLs were loaded that indicate active network socket operations:
 | DLL | Purpose |
 |---|---|
 | `msvcrt.dll` | Microsoft C Runtime Library |
-| `mswsock.dll` | Microsoft Windows Sockets — confirms active network operations |
+| `mswsock.dll` | Microsoft Windows Sockets - confirms active network operations |
 
 ```
 Image Name       PID   Modules
