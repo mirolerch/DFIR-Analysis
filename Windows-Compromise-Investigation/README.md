@@ -3,7 +3,7 @@
 **Case ID:** DFIR-2026-WIN-001  
 **Date:** 2026-06-22  
 **Analyst:** Miro Lerch  
-**Classification:** Confidential — Internal IR Use Only  
+**Classification:** Confidential - Internal IR Use Only  
 **Status:** Remediated
 
 ---
