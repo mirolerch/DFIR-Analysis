@@ -174,7 +174,7 @@ Three default Windows administrative shares were present (`C$`, `IPC$`, `ADMIN$`
 
 | Share Name | Resource Path | Notes |
 |---|---|---|
-| `xkalibur` | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Attacker-created — points to Temp directory |
+| `xkalibur` | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Attacker-created - points to Temp directory |
 
 ```
 Share name   Resource
