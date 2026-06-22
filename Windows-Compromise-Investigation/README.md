@@ -95,7 +95,7 @@ TCP    0.0.0.0:50050     0.0.0.0:0         LISTENING    7116
 
 **Screenshot:**
 
-![netstat output](screenshots/netstat output.png)
+![netstat output](screenshots/netstat%20output.png)
 
 > Port 50050 is the default Cobalt Strike Teamserver port. Its presence on a workstation is a strong indicator of an active C2 listener or beacon staging component.
 
@@ -130,7 +130,7 @@ challenge.exe    7116   ntdll.dll, KERNEL32.DLL, KERNELBASE.dll, apphelp.dll,
 
 **Screenshot:**
 
-![tasklist DLL output](screenshots/tasklist DLL output.png)
+![tasklist DLL output](screenshots/tasklist%20DLL%20output.png)
 
 ### 2b — Parent Process Identification
 
@@ -146,7 +146,7 @@ The malicious process `challenge.exe` was spawned by **`cmd.exe`**, consistent w
 
 **Screenshot:**
 
-![wmic parent process](screenshots/wmic parent process.png)
+![wmic parent process](screenshots/wmic%20parent%20process.png)
 
 ---
 
@@ -178,7 +178,7 @@ xkalibur     C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1
 
 **Screenshot:**
 
-![net share output](screenshots/net share output.png)
+![net share output](screenshots/net%20share%20output.png)
 
 > Sharing a user's Temp directory over SMB is a common attacker technique for staging payloads or exfiltrating data. The randomly-named subdirectory (`46d5b8556d0d3e30ec1`) further indicates automated tooling.
 
@@ -214,7 +214,7 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 
 **Screenshot:**
 
-![reg query Run key](screenshots/reg query Run key.png)
+![reg query Run key](screenshots/reg%20query%20Run%20key.png)
 
 > The entry name `CleanUpController` is crafted to appear as a legitimate maintenance utility. The binary `wininit.exe` in the `Downloads` folder is a significant red flag — the legitimate Windows `wininit.exe` resides in `C:\Windows\System32\`, never in a user's Downloads directory.
 
@@ -252,7 +252,7 @@ SERVICE_NAME: WindowsActiveService
 
 **Screenshot:**
 
-![sc qc WindowsActiveService](screenshots/sc qc WindowsActiveService.png)
+![sc qc WindowsActiveService](screenshots/sc%20qc%20WindowsActiveService.png)
 
 > A service binary located in `C:\Users\<user>\Documents\` rather than `C:\Windows\System32\` or `C:\Program Files\` is highly anomalous. `AUTO_START` under `LocalSystem` provides SYSTEM-level persistence that survives reboots without requiring user interaction. The filename `svcbackdoor.exe` leaves no ambiguity as to its purpose.
 
@@ -284,7 +284,7 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 
 **Screenshot:**
 
-![schtasks output](screenshots/schtasks output.png)
+![schtasks output](screenshots/schtasks%20output.png)
 
 > The task name `ayttpnzc` is a random-looking string consistent with automated attacker tooling. The executable `beac0n.exe` (deliberate leet-speak spelling) is a staged beacon payload in the user's Downloads folder. Scheduling at 03:30 AM targets a low-activity window to minimize detection probability.
 
