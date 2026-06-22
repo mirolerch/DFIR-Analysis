@@ -42,6 +42,8 @@ A Windows workstation was flagged for investigation after exhibiting suspicious 
 - No lateral movement confirmed at time of investigation
 - User account in scope: `psaa`
 
+> **Note:** Certain attacker-planted artifacts (registry Run key, service binary path, scheduled task) reference the hardcoded username `tcm` as embedded by the simulation engine. The actual user account on the investigated system is `psaa`. This discrepancy is reflected in the screenshots and documented here for accuracy.
+
 ---
 
 ## Tools Used
@@ -64,7 +66,7 @@ A Windows workstation was flagged for investigation after exhibiting suspicious 
 | Time (UTC) | Action |
 |---|---|
 | T+00:00 | Investigation initiated; active listener identified on port 50050 |
-| T+00:10 | Malicious process (PID 12184) identified and DLL modules enumerated |
+| T+00:10 | Malicious process (PID 7116) identified and DLL modules enumerated |
 | T+00:20 | Attacker-created SMB share `xkalibur` discovered |
 | T+00:30 | Registry Run key persistence entry `CleanUpController` identified |
 | T+00:45 | Backdoor service `WindowsActiveService` identified with AUTO_START |
@@ -88,12 +90,12 @@ The malware was found listening on **TCP port 50050** — a port commonly associ
 
 ```
 Proto  Local Address     Foreign Address   State        PID
-TCP    0.0.0.0:50050     0.0.0.0:0         LISTENING    12184
+TCP    0.0.0.0:50050     0.0.0.0:0         LISTENING    7116
 ```
 
 **Screenshot:**
 
-![netstat output](screenshots/netstat_listener.png)
+![netstat output](screenshots/netstat_output.png)
 
 > Port 50050 is the default Cobalt Strike Teamserver port. Its presence on a workstation is a strong indicator of an active C2 listener or beacon staging component.
 
@@ -107,7 +109,7 @@ TCP    0.0.0.0:50050     0.0.0.0:0         LISTENING    12184
 
 **Command:**
 ```cmd
-tasklist /M /FI "PID eq 12184"
+tasklist /M /FI "PID eq 7116"
 ```
 
 **Finding:**
@@ -121,20 +123,20 @@ Two notable DLLs were loaded that indicate network socket activity:
 
 ```
 Image Name       PID     Modules
-challenge.exe    12184   ntdll.dll, KERNEL32.DLL, KERNELBASE.dll, apphelp.dll,
+challenge.exe    7116   ntdll.dll, KERNEL32.DLL, KERNELBASE.dll, apphelp.dll,
                          ADVAPI32.dll, msvcrt.dll, sechost.dll, RPCRT4.dll,
                          WS2_32.dll, ucrtbase.dll, mswsock.dll
 ```
 
 **Screenshot:**
 
-![tasklist DLL output](screenshots/tasklist_dlls.png)
+![tasklist DLL output](screenshots/tasklist_DLL_output.png)
 
 ### 2b — Parent Process Identification
 
 **Command:**
 ```cmd
-wmic process where "ProcessId=12184" get Name,ParentProcessId
+wmic process where "ProcessId=7116" get Name,ParentProcessId
 wmic process where "ProcessId=<PPID>" get Name
 ```
 
@@ -176,7 +178,7 @@ xkalibur     C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1
 
 **Screenshot:**
 
-![net share output](screenshots/net_share.png)
+![net share output](screenshots/net_share_output.png)
 
 > Sharing a user's Temp directory over SMB is a common attacker technique for staging payloads or exfiltrating data. The randomly-named subdirectory (`46d5b8556d0d3e30ec1`) further indicates automated tooling.
 
@@ -212,7 +214,7 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 
 **Screenshot:**
 
-![reg query Run key](screenshots/reg_query_run_key.png)
+![reg query Run key](screenshots/reg_query_Run_key.png)
 
 > The entry name `CleanUpController` is crafted to appear as a legitimate maintenance utility. The binary `wininit.exe` in the `Downloads` folder is a significant red flag — the legitimate Windows `wininit.exe` resides in `C:\Windows\System32\`, never in a user's Downloads directory.
 
@@ -250,7 +252,7 @@ SERVICE_NAME: WindowsActiveService
 
 **Screenshot:**
 
-![sc qc WindowsActiveService](screenshots/sc_qc_service.png)
+![sc qc WindowsActiveService](screenshots/sc_qc_WindowsActiveService.png)
 
 > A service binary located in `C:\Users\<user>\Documents\` rather than `C:\Windows\System32\` or `C:\Program Files\` is highly anomalous. `AUTO_START` under `LocalSystem` provides SYSTEM-level persistence that survives reboots without requiring user interaction. The filename `svcbackdoor.exe` leaves no ambiguity as to its purpose.
 
@@ -282,7 +284,7 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 
 **Screenshot:**
 
-![schtasks output](screenshots/schtasks_ayttpnzc.png)
+![schtasks output](screenshots/schtasks_output.png)
 
 > The task name `ayttpnzc` is a random-looking string consistent with automated attacker tooling. The executable `beac0n.exe` (deliberate leet-speak spelling) is a staged beacon payload in the user's Downloads folder. Scheduling at 03:30 AM targets a low-activity window to minimize detection probability.
 
@@ -293,7 +295,7 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 | Type | Value | Context |
 |---|---|---|
 | Network Port | `TCP/50050` | Active C2 listener |
-| Process | `challenge.exe` (PID 12184) | Malicious listener process |
+| Process | `challenge.exe` (PID 7116) | Malicious listener process |
 | SMB Share | `xkalibur` | Attacker-created share |
 | Share Path | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Staging directory |
 | Registry Key | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` | Persistence location |
@@ -349,7 +351,7 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 
 ### Immediate Containment
 - [ ] Isolate the host from the network (disable NIC / quarantine in EDR)
-- [ ] Terminate the malicious listener process (PID 12184)
+- [ ] Terminate the malicious listener process (PID 7116)
 - [ ] Remove the SMB share: `net share xkalibur /delete`
 
 ### Persistence Removal
