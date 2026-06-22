@@ -106,7 +106,7 @@ TCP    0.0.0.0:50050      0.0.0.0:0         LISTENING  7116
 
 **Objective:** Identify the malicious process by PID and enumerate its loaded DLL modules and parent process.
 
-### 2a — DLL Module Enumeration
+### 2a - DLL Module Enumeration
 
 **Command:**
 ```cmd
