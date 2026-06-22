@@ -89,8 +89,9 @@ netstat -anob
 The malware was found listening on **TCP port 50050** — a port commonly associated with Cobalt Strike's default Teamserver configuration.
 
 ```
-Proto  Local Address     Foreign Address   State        PID
-TCP    0.0.0.0:50050     0.0.0.0:0         LISTENING    7116
+Proto  Local Address      Foreign Address   State      PID
+TCP    0.0.0.0:50050      0.0.0.0:0         LISTENING  7116
+       [challenge.exe]
 ```
 
 **Screenshot:**
@@ -114,7 +115,7 @@ tasklist /M /FI "PID eq 7116"
 
 **Finding:**
 
-Two notable DLLs were loaded that indicate network socket activity:
+Two notable DLLs were loaded that indicate active network socket operations:
 
 | DLL | Purpose |
 |---|---|
@@ -122,10 +123,10 @@ Two notable DLLs were loaded that indicate network socket activity:
 | `mswsock.dll` | Microsoft Windows Sockets — confirms active network operations |
 
 ```
-Image Name       PID     Modules
-challenge.exe    7116   ntdll.dll, KERNEL32.DLL, KERNELBASE.dll, apphelp.dll,
-                         ADVAPI32.dll, msvcrt.dll, sechost.dll, RPCRT4.dll,
-                         WS2_32.dll, ucrtbase.dll, mswsock.dll
+Image Name       PID   Modules
+challenge.exe    7116  ntdll.dll, KERNEL32.DLL, KERNELBASE.dll,
+                       ADVAPI32.dll, msvcrt.dll, sechost.dll,
+                       RPCRT4.dll, WS2_32.dll, ucrtbase.dll, mswsock.dll
 ```
 
 **Screenshot:**
@@ -137,12 +138,20 @@ challenge.exe    7116   ntdll.dll, KERNEL32.DLL, KERNELBASE.dll, apphelp.dll,
 **Command:**
 ```cmd
 wmic process where "ProcessId=7116" get Name,ParentProcessId
-wmic process where "ProcessId=<PPID>" get Name
+wmic process where "ProcessId=7172" get Name,ProcessId,ParentProcessId
 ```
 
 **Finding:**
 
-The malicious process `challenge.exe` was spawned by **`cmd.exe`**, consistent with manual attacker execution from an interactive command prompt session.
+The malicious process `challenge.exe` (PID 7116) had a parent PID of `7172`. Querying that PID confirmed the parent was **`cmd.exe`**, consistent with manual attacker execution from an interactive command prompt session.
+
+```
+Name           ParentProcessId
+challenge.exe  7172
+
+Name     ParentProcessId  ProcessId
+cmd.exe  5352             7172
+```
 
 **Screenshot:**
 
@@ -200,11 +209,11 @@ One legitimate entry (`MicrosoftEdgeAutoLaunch`) and one malicious entry were id
 | Entry Name | Value | Assessment |
 |---|---|---|
 | `MicrosoftEdgeAutoLaunch_8D33...` | `msedge.exe --win-session-start` | Legitimate |
-| `CleanUpController` | `C:\Users\psaa\Downloads\wininit.exe` | **MALICIOUS** |
+| `CleanUpController` | `C:\Users\tcm\Downloads\wininit.exe` | **MALICIOUS** |
 
 ```
 HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
-    CleanUpController    REG_SZ    C:\Users\psaa\Downloads\wininit.exe
+    CleanUpController    REG_SZ    C:\Users\tcm\Downloads\wininit.exe
 ```
 
 **Full Registry Key Path:**
@@ -238,15 +247,15 @@ A backdoor service named `WindowsActiveService` was found configured for automat
 |---|---|
 | Service Name | `WindowsActiveService` |
 | Start Type | `AUTO_START` (2) |
-| Binary Path | `C:\Users\psaa\Documents\svcbackdoor.exe` |
+| Binary Path | `C:\Users\tcm\Documents\svcbackdoor.exe` |
 | Run As | `LocalSystem` |
 | State at Discovery | `STOPPED` |
 
 ```
 SERVICE_NAME: WindowsActiveService
     TYPE               : 10  WIN32_OWN_PROCESS
-    START_TYPE         : 2  AUTO_START
-    BINARY_PATH_NAME   : C:\Users\psaa\Documents\svcbackdoor.exe
+    START_TYPE         : 2   AUTO_START
+    BINARY_PATH_NAME   : C:\Users\tcm\Documents\svcbackdoor.exe
     SERVICE_START_NAME : LocalSystem
 ```
 
@@ -262,7 +271,7 @@ SERVICE_NAME: WindowsActiveService
 
 **Objective:** Identify attacker-created scheduled tasks used for timed execution of malicious payloads.
 
-**Command:**
+**Commands:**
 ```cmd
 schtasks /query /tn "ayttpnzc"
 schtasks /query /fo LIST /v /tn "ayttpnzc"
@@ -273,20 +282,27 @@ schtasks /query /fo LIST /v /tn "ayttpnzc"
 | Property | Value |
 |---|---|
 | Task Name | `ayttpnzc` |
-| Executable | `C:\Users\psaa\Downloads\beac0n.exe` |
-| Next Run Time | `2026-06-23 03:30:00` |
+| Executable | `C:\Users\tcm\Downloads\beac0n.exe` |
+| Run As | `psaa` |
+| Next Run Time | `2026-06-23 03:30:00 AM` |
+| Schedule Type | Daily |
 | Status | `Ready` |
 
 ```
-TaskName      Next Run Time          Status
-ayttpnzc      6/23/2026 3:30:00 AM   Ready
+TaskName                    Next Run Time          Status
+ayttpnzc                    6/23/2026 3:30:00 AM   Ready
+
+Task To Run:   C:\Users\tcm\Downloads\beac0n.exe
+Run As User:   psaa
+Start Time:    3:30:00 AM
+Schedule Type: Daily
 ```
 
 **Screenshot:**
 
 ![schtasks output](screenshots/schtasks%20output.png)
 
-> The task name `ayttpnzc` is a random-looking string consistent with automated attacker tooling. The executable `beac0n.exe` (deliberate leet-speak spelling) is a staged beacon payload in the user's Downloads folder. Scheduling at 03:30 AM targets a low-activity window to minimize detection probability.
+> The task name `ayttpnzc` is a random-looking string consistent with automated attacker tooling. The executable `beac0n.exe` (deliberate leet-speak spelling) is a staged beacon payload. Scheduling at 03:30 AM targets a low-activity window to minimize detection probability.
 
 ---
 
@@ -300,11 +316,11 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 | Share Path | `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1` | Staging directory |
 | Registry Key | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` | Persistence location |
 | Registry Entry | `CleanUpController` | Malicious Run key entry |
-| File | `C:\Users\psaa\Downloads\wininit.exe` | Run key payload |
+| File | `C:\Users\tcm\Downloads\wininit.exe` | Run key payload |
 | Service | `WindowsActiveService` | Backdoor service |
-| File | `C:\Users\psaa\Documents\svcbackdoor.exe` | Service binary |
+| File | `C:\Users\tcm\Documents\svcbackdoor.exe` | Service binary |
 | Scheduled Task | `ayttpnzc` | Timed execution task |
-| File | `C:\Users\psaa\Downloads\beac0n.exe` | Beacon payload |
+| File | `C:\Users\tcm\Downloads\beac0n.exe` | Beacon payload |
 
 ---
 
@@ -360,9 +376,9 @@ ayttpnzc      6/23/2026 3:30:00 AM   Ready
 - [ ] Delete scheduled task: `schtasks /delete /tn "ayttpnzc" /f`
 
 ### File System Cleanup
-- [ ] Remove `C:\Users\psaa\Downloads\wininit.exe`
-- [ ] Remove `C:\Users\psaa\Documents\svcbackdoor.exe`
-- [ ] Remove `C:\Users\psaa\Downloads\beac0n.exe`
+- [ ] Remove `C:\Users\tcm\Downloads\wininit.exe`
+- [ ] Remove `C:\Users\tcm\Documents\svcbackdoor.exe`
+- [ ] Remove `C:\Users\tcm\Downloads\beac0n.exe`
 - [ ] Remove staging directory: `C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1\`
 
 ### Post-Incident
