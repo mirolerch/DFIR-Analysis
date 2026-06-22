@@ -14,12 +14,12 @@
 2. [Scenario & Scope](#scenario--scope)
 3. [Tools Used](#tools-used)
 4. [Investigation Timeline](#investigation-timeline)
-5. [Phase 1 — Network Listener Discovery](#phase-1--network-listener-discovery)
-6. [Phase 2 — Process Analysis](#phase-2--process-analysis)
-7. [Phase 3 — SMB Share Enumeration](#phase-3--smb-share-enumeration)
-8. [Phase 4 — Registry Persistence (Run Key)](#phase-4--registry-persistence-run-key)
-9. [Phase 5 — Backdoor Service Analysis](#phase-5--backdoor-service-analysis)
-10. [Phase 6 — Scheduled Task Analysis](#phase-6--scheduled-task-analysis)
+5. [Phase 1 - Network Listener Discovery](#phase-1--network-listener-discovery)
+6. [Phase 2 - Process Analysis](#phase-2--process-analysis)
+7. [Phase 3 - SMB Share Enumeration](#phase-3--smb-share-enumeration)
+8. [Phase 4 - Registry Persistence (Run Key)](#phase-4--registry-persistence-run-key)
+9. [Phase 5 - Backdoor Service Analysis](#phase-5--backdoor-service-analysis)
+10. [Phase 6 - Scheduled Task Analysis](#phase-6--scheduled-task-analysis)
 11. [IOC Summary](#ioc-summary)
 12. [MITRE ATT&CK Mapping](#mitre-attck-mapping)
 13. [Detection Opportunities](#detection-opportunities)
@@ -35,7 +35,7 @@ A Windows workstation was identified as compromised following the detection of a
 
 ## Scenario & Scope
 
-A Windows workstation was flagged for investigation after exhibiting suspicious behavior. The system had been imaged and all forensic artifacts were accessible. The objective was to identify the full scope of compromise — specifically any active network listeners, running malicious processes, and persistence mechanisms installed by the attacker.
+A Windows workstation was flagged for investigation after exhibiting suspicious behavior. The system had been imaged and all forensic artifacts were accessible. The objective was to identify the full scope of compromise - specifically any active network listeners, running malicious processes, and persistence mechanisms installed by the attacker.
 
 **Scope:**
 - Host-based investigation on a single Windows workstation
@@ -75,7 +75,7 @@ A Windows workstation was flagged for investigation after exhibiting suspicious 
 
 ---
 
-## Phase 1 — Network Listener Discovery
+## Phase 1 - Network Listener Discovery
 
 **Objective:** Identify any active network listeners that may indicate a C2 channel or backdoor.
 
@@ -86,7 +86,7 @@ netstat -anob
 
 **Finding:**
 
-The malware was found listening on **TCP port 50050** — a port commonly associated with Cobalt Strike's default Teamserver configuration.
+The malware was found listening on **TCP port 50050** - a port commonly associated with Cobalt Strike's default Teamserver configuration.
 
 ```
 Proto  Local Address      Foreign Address   State      PID
@@ -102,7 +102,7 @@ TCP    0.0.0.0:50050      0.0.0.0:0         LISTENING  7116
 
 ---
 
-## Phase 2 — Process Analysis
+## Phase 2 - Process Analysis
 
 **Objective:** Identify the malicious process by PID and enumerate its loaded DLL modules and parent process.
 
@@ -133,7 +133,7 @@ challenge.exe    7116  ntdll.dll, KERNEL32.DLL, KERNELBASE.dll,
 
 ![tasklist DLL output](screenshots/tasklist%20DLL%20output.png)
 
-### 2b — Parent Process Identification
+### 2b - Parent Process Identification
 
 **Command:**
 ```cmd
@@ -159,7 +159,7 @@ cmd.exe  5352             7172
 
 ---
 
-## Phase 3 — SMB Share Enumeration
+## Phase 3 - SMB Share Enumeration
 
 **Objective:** Enumerate all shared resources on the system to identify attacker-created shares.
 
@@ -193,7 +193,7 @@ xkalibur     C:\Users\psaa\AppData\Local\Temp\46d5b8556d0d3e30ec1
 
 ---
 
-## Phase 4 — Registry Persistence (Run Key)
+## Phase 4 - Registry Persistence (Run Key)
 
 **Objective:** Identify attacker-created Run key entries used to maintain persistence across reboots.
 
@@ -229,7 +229,7 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 
 ---
 
-## Phase 5 — Backdoor Service Analysis
+## Phase 5 - Backdoor Service Analysis
 
 **Objective:** Identify any attacker-installed Windows services configured for persistence.
 
@@ -267,7 +267,7 @@ SERVICE_NAME: WindowsActiveService
 
 ---
 
-## Phase 6 — Scheduled Task Analysis
+## Phase 6 - Scheduled Task Analysis
 
 **Objective:** Identify attacker-created scheduled tasks used for timed execution of malicious payloads.
 
