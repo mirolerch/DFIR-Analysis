@@ -14,10 +14,10 @@
 2. [Scenario & Scope](#scenario--scope)
 3. [Tools Used](#tools-used)
 4. [Investigation Timeline](#investigation-timeline)
-5. [Phase 1 — Network Listener Discovery](#phase-1--network-listener-discovery)
-6. [Phase 2 — Process Analysis](#phase-2--process-analysis)
-7. [Phase 3 — Malware Identification via SHA-256 & String Analysis](#phase-3--malware-identification-via-sha-256--string-analysis)
-8. [Phase 4 — Cron Job Persistence Analysis](#phase-4--cron-job-persistence-analysis)
+5. [Phase 1 - Network Listener Discovery](#phase-1--network-listener-discovery)
+6. [Phase 2 - Process Analysis](#phase-2--process-analysis)
+7. [Phase 3 - Malware Identification via SHA-256 & String Analysis](#phase-3--malware-identification-via-sha-256--string-analysis)
+8. [Phase 4 - Cron Job Persistence Analysis](#phase-4--cron-job-persistence-analysis)
 9. [IOC Summary](#ioc-summary)
 10. [MITRE ATT&CK Mapping](#mitre-attck-mapping)
 11. [Detection Opportunities](#detection-opportunities)
@@ -71,7 +71,7 @@ A compromised Linux server was assigned for investigation as part of a live inci
 
 ---
 
-## Phase 1 — Network Listener Discovery
+## Phase 1 - Network Listener Discovery
 
 **Objective:** Identify active network listeners that may indicate a backdoor or C2 channel.
 
@@ -125,7 +125,7 @@ The process `kitty.meow` was confirmed running as `root` with PID `4244`. The fu
 root  4244  0.0  0.0  3524  1928 pts/2  S+  11:09  0:00 /tmp/kitty.meow -l -p 31337
 ```
 
-Inspection of the procfs entry revealed the binary had already been **deleted from disk** — a common attacker anti-forensics technique to remove the file while keeping the process alive in memory:
+Inspection of the procfs entry revealed the binary had already been **deleted from disk** - a common attacker anti-forensics technique to remove the file while keeping the process alive in memory:
 
 ```
 lrwxrwxrwx 1 root root 0 Jun 27 12:03 exe -> '/tmp/kitty.meow (deleted)'
@@ -143,11 +143,11 @@ Despite the deletion, the binary remained accessible via `/proc/4244/exe` for th
 
 ---
 
-## Phase 3 — Malware Identification via SHA-256 & String Analysis
+## Phase 3 - Malware Identification via SHA-256 & String Analysis
 
 **Objective:** Hash the malware binary and extract printable strings to identify the underlying tool or utility.
 
-### 3a — SHA-256 Hash
+### 3a - SHA-256 Hash
 
 **Command:**
 ```bash
@@ -195,7 +195,7 @@ Additional network-related functions were present in the import table confirming
 
 ---
 
-## Phase 4 — Cron Job Persistence Analysis
+## Phase 4 - Cron Job Persistence Analysis
 
 **Objective:** Identify attacker-created cron entries used to maintain persistence or execute scheduled malicious tasks.
 
@@ -224,7 +224,7 @@ All standard system cron entries were present and legitimate. One anomalous entr
 
 **Scheduled execution: October 13 at 17:45**
 
-The script name `exfiltr8.sh` (leet-speak for "exfiltrate") strongly indicates a data exfiltration payload. Its location in `/tmp/` — a world-writable, non-persistent directory — is consistent with attacker staging behavior.
+The script name `exfiltr8.sh` (leet-speak for "exfiltrate") strongly indicates a data exfiltration payload. Its location in `/tmp/` - a world-writable, non-persistent directory - is consistent with attacker staging behavior.
 
 **Screenshot:**
 
@@ -266,7 +266,7 @@ The script name `exfiltr8.sh` (leet-speak for "exfiltrate") strongly indicates a
 ## Detection Opportunities
 
 **Network:**
-- Alert on any process listening on port 31337 — no legitimate service uses this port
+- Alert on any process listening on port 31337 - no legitimate service uses this port
 - Monitor for new TCP listeners spawned from `/tmp/` or other world-writable directories
 - Alert on bind shell invocations: processes with `-l -p <port>` arguments
 
@@ -280,7 +280,7 @@ The script name `exfiltr8.sh` (leet-speak for "exfiltrate") strongly indicates a
 - Flag any script in `/tmp/` with `.sh` extension owned by root
 
 **Cron:**
-- Baseline `/etc/crontab` and all files under `/etc/cron.*` — alert on any new entries
+- Baseline `/etc/crontab` and all files under `/etc/cron.*` - alert on any new entries
 - Flag cron entries pointing to scripts or binaries in `/tmp/`, `/dev/shm/`, or home directories
 - Monitor crontab modification events via auditd (syscall `openat` on `/etc/crontab`)
 
