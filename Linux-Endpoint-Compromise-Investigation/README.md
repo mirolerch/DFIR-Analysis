@@ -164,11 +164,13 @@ de49cac83b4645476865e1faa39ac6c9e833baa1ea26fde02ec8045ec71a160d  /proc/4244/exe
 
 ![sha256 hash](screenshots/01_malware_sha256_II.png)
 
-### 3b — String Extraction
+### 3b - String Extraction
 
 **Commands:**
 ```bash
 sudo strings /proc/4244/exe
+sudo strings -n 8 /proc/4244/exe
+sudo strings /proc/4244/exe | grep -i "listen\|port\|usage\|connect"
 sudo strings -n 8 /proc/4244/exe | grep "nc\|netcat\|netcat-openbsd"
 ```
 
