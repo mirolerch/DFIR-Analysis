@@ -104,7 +104,7 @@ kitty.meo  4244 root  3u   IPv4  28683  TCP *:31337 (LISTEN)
 
 ---
 
-## Phase 2 — Process Analysis
+## Phase 2 - Process Analysis
 
 **Objective:** Identify the malicious process, confirm its binary path, and establish its full command line invocation.
 
