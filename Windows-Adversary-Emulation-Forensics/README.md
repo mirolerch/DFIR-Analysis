@@ -15,8 +15,8 @@ The alert is a **true positive**. Within about 45 seconds (19:09:38 – 19:10:24
 - downloaded a macro-enabled Office document from the internet,
 - created the local administrator account **art-test**,
 - ran a Base64 payload stored in the registry,
-- installed **five persistence mechanisms** (Run key, two Startup folder scripts, two scheduled tasks, one service),
-- injected a DLL into **notepad.exe**.
+- created **six persistence entries** (Run key, two Startup folder scripts, two scheduled tasks, one service), of which four would survive a reboot,
+- ran a DLL injection command against **notepad.exe** (attempt confirmed, successful load not independently verified).
 
 The service process and the injected notepad.exe were still running when memory was captured (19:22:19). The art-test account was never used to log on. No deletion of evidence was found.
 
@@ -161,16 +161,22 @@ mavinject $mypid /INJECTRUNNING C:\AtomicRedTeam\atomics\T1055.001\src\x64\T1055
 
 ### 3.6 Persistence Mechanisms
 
-| # | Mechanism | Detail | Created | Status |
-|---|---|---|---|---|
-| 1 | HKCU Run key | `Atomic Red Team` → `C:\Path\AtomicRedTeam.exe` | 19:10:13 | Target file does not exist (Autoruns: "File not found") |
-| 2 | Startup folder (all users) | `C:\ProgramData\...\StartUp\batstartup.bat` (34 bytes) | 19:10:16 | Present, runs at every logon |
-| 3 | Startup folder (lweber) | `%APPDATA%\...\Startup\batstartup.bat` | 19:10:16 | Present, runs at every logon of lweber |
-| 4 | Scheduled task | `\T1053_005_OnLogon`, LogonTrigger, `cmd.exe /c calc.exe`, author lweber | 19:10:18 | Enabled, never run |
-| 5 | Scheduled task | `\T1053_005_OnStartup`, BootTrigger, `cmd.exe /c calc.exe`, author lweber | 19:10:18 | Enabled, never run |
-| 6 | Service | `AtomicTestService_CMD`, `C:\AtomicRedTeam\atomics\T1543.003\bin\AtomicService.exe`, demand start, LocalSystem, unsigned | 19:10:20 | Running (PID 6844), but does not start by itself after reboot |
+| # | Mechanism | Detail | Created | Status | Effective after reboot |
+|---|---|---|---|---|---|
+| 1 | HKCU Run key | `Atomic Red Team` → `C:\Path\AtomicRedTeam.exe` | 19:10:13 | Target file does not exist (Autoruns: "File not found") | **No** – target missing |
+| 2 | Startup folder (all users) | `C:\ProgramData\...\StartUp\batstartup.bat` (34 bytes) | 19:10:16 | Present, runs at every logon | **Yes** |
+| 3 | Startup folder (lweber) | `%APPDATA%\...\Startup\batstartup.bat` | 19:10:16 | Present, runs at every logon of lweber | **Yes** |
+| 4 | Scheduled task | `\T1053_005_OnLogon`, LogonTrigger, `cmd.exe /c calc.exe`, author lweber | 19:10:18 | Enabled, never run | **Yes** – LogonTrigger |
+| 5 | Scheduled task | `\T1053_005_OnStartup`, BootTrigger, `cmd.exe /c calc.exe`, author lweber | 19:10:18 | Enabled, never run | **Yes** – BootTrigger |
+| 6 | Service | `AtomicTestService_CMD`, `C:\AtomicRedTeam\atomics\T1543.003\bin\AtomicService.exe`, demand start, LocalSystem, unsigned | 19:10:20 | Running (PID 6844), but does not start by itself after reboot | **No** – demand start |
 
-The content of batstartup.bat is `echo " T1547.001 Hello World Bat"`. The payload is harmless, but the mechanism is real persistence.
+The content of batstartup.bat is `echo " T1547.001 Hello World Bat"`. The payloads are harmless, but the mechanisms are real persistence.
+
+**Assessment:** six persistence entries were created. Four of them (both Startup folder scripts and both scheduled tasks) would run again after a reboot or logon. The Run key points to a file that does not exist, and the service is set to manual start, so these two would not survive a reboot on their own.
+
+![Figure 18](screenshots/18_service_atomictestservice.png)
+
+![Figure 20](screenshots/20_scheduled_tasks_triggers.png)
 
 ### 3.7 Program Execution
 
@@ -198,7 +204,18 @@ The content of batstartup.bat is `echo " T1547.001 Hello World Bat"`. The payloa
 | **6844** | **AtomicService.exe** | 632 | 19:10:20 | **Running**, session 0 (service) |
 
 - AtomicService.exe was dumped from memory. It has a valid PE header and the manifest `MyApplication.app`.
-- `malfind`, `dlllist` and `vadinfo` returned no data for PID 3516. The injection is therefore proven by PowerShell Event 400, Prefetch and the process tree, not by memory artifacts.
+- `malfind`, `dlllist` and `vadinfo` returned no data for PID 3516. The memory structures of notepad.exe could not be read in this capture.
+- `malfind` on PID 6844 (AtomicService.exe) flagged one private region `0x1440000–0x144ffff` with `PAGE_EXECUTE_READWRITE`. The region has no PE header. This is common for .NET processes (JIT code) and is not by itself evidence of injection.
+
+**DLL injection – evidence status**
+
+| Statement | Status | Evidence |
+|---|---|---|
+| Injection command was executed | **Confirmed** | PowerShell Event 400 (`mavinject $mypid /INJECTRUNNING …T1055.001.dll`), Prefetch (mavinject.exe 19:10:24) |
+| notepad.exe was started as the target | **Confirmed** | pstree: notepad.exe PID 3516, parent powershell.exe PID 4656, same parent as mavinject.exe |
+| DLL was successfully loaded into notepad.exe | **Not independently verified** | No DLL list or VAD data for PID 3516 in the memory image |
+
+![Figure 31](screenshots/31_vol_pstree.png)
 
 ### 3.9 Anti-Forensics
 
@@ -239,6 +256,7 @@ The content of batstartup.bat is `echo " T1547.001 Hello World Bat"`. The payloa
 - **AtomicService.exe** is not in Amcache. The SHA1 was calculated from the file on the mounted image.
 - **Sysmon process creation events** (Event 1) were not analysed per command line.
 - **KAPE triage** did not collect the Startup folders. They were checked on the mounted image.
+- **Memory analysis scope:** `windows.netscan`, `windows.handles` and `windows.ldrmodules` were not run. Network activity of the attack processes was not verified in memory.
 - **No super timeline** (Plaso) was built. The timeline is based on Prefetch, Registry, Event Logs, USN Journal and memory.
 
 ---
@@ -307,6 +325,7 @@ vol -f pf-memory.raw windows.pslist --pid 3516 6844
 vol -f pf-memory.raw -o . windows.pslist --pid 6844 --dump
 strings 6844.AtomicService..0x720000.dmp
 vol -f pf-memory.raw windows.malfind --pid 3516
+vol -f pf-memory.raw windows.malfind --pid 6844
 vol -f pf-memory.raw windows.dlllist --pid 3516
 ```
 
@@ -315,6 +334,8 @@ vol -f pf-memory.raw windows.dlllist --pid 3516
 ## 5. Screenshots
 
 All screenshots are stored in the folder `screenshots/`. The figure number is the start of the file name.
+
+> **Time zones in screenshots:** some tools show the local time of the analysis workstation (Windows Explorer and Autoruns UTC-7, Event Log Explorer UTC-8). All times in this report are converted to UTC.
 
 ### Acquisition and preparation
 
@@ -501,6 +522,93 @@ T1078.003 (Valid Accounts: Local Accounts) does **not** apply. The art-test acco
 | 9 | `Set-ExecutionPolicy Bypass` followed by a script from the Downloads folder | PowerShell 4104 |
 | 10 | Defender real-time protection disabled | Defender 5001 |
 | 11 | Correlation: several of the above on one host within 60 seconds | SIEM rule |
+
+### 7.1 Detection Rules (Sigma)
+
+**Local account created and added to Administrators**
+
+```yaml
+title: Local User Created and Added to Administrators via net.exe
+status: experimental
+description: Detects net.exe or net1.exe creating a local user or adding a user to the local Administrators group.
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|endswith:
+      - '\net.exe'
+      - '\net1.exe'
+  selection_user_add:
+    CommandLine|contains|all:
+      - ' user '
+      - '/add'
+  selection_group_add:
+    CommandLine|contains|all:
+      - ' localgroup '
+      - 'administrators'
+      - '/add'
+  condition: selection_img and (selection_user_add or selection_group_add)
+falsepositives:
+  - Administrative scripts that create local accounts
+level: high
+tags:
+  - attack.persistence
+  - attack.t1136.001
+```
+
+**Process injection with mavinject.exe**
+
+```yaml
+title: DLL Injection via mavinject.exe
+status: experimental
+description: Detects mavinject.exe used with /INJECTRUNNING to load a DLL into a running process.
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: '\mavinject.exe'
+    CommandLine|contains: '/INJECTRUNNING'
+  condition: selection
+falsepositives:
+  - Rare; App-V related use
+level: high
+tags:
+  - attack.defense_evasion
+  - attack.t1055.001
+  - attack.t1218
+```
+
+**Service installed from a non-standard path**
+
+```yaml
+title: Service Installed with Image Path Outside System Folders
+status: experimental
+description: Detects a new service (System 7045) whose image path is not in Windows or Program Files.
+logsource:
+  product: windows
+  service: system
+detection:
+  selection:
+    Provider_Name: 'Service Control Manager'
+    EventID: 7045
+  filter_legit:
+    ImagePath|contains:
+      - 'C:\Windows\'
+      - '%SystemRoot%'
+      - '\SystemRoot\'
+      - 'C:\Program Files'
+  condition: selection and not filter_legit
+falsepositives:
+  - Software installed outside Program Files
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1543.003
+```
+
+In this case, rule 1 and rule 2 require process command line logging (Sysmon Event 1 or Security 4688 with command line), which was enabled on the host. Rule 3 would have triggered on `AtomicTestService_CMD` at 19:10:20.
 
 ---
 
