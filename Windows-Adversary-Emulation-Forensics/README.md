@@ -1,5 +1,3 @@
-Hier ist der komplette Inhalt für die **README.md**. Kopier alles im Kasten und füg es bei GitHub ein:
-
 ````markdown
 # Case 01 – Windows Endpoint Compromise Investigation
 
