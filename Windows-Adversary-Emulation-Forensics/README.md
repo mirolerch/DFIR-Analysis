@@ -1,4 +1,3 @@
-````markdown
 # Case 01 – Windows Endpoint Compromise Investigation
 
 **Host:** DESKTOP-R39QKFP (Windows 10 Pro x64, build 19041) · **User:** lweber  
