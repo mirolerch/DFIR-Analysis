@@ -1,4 +1,4 @@
-# Case 01 - Windows Endpoint Compromise Investigation
+# Case 01 – Windows Endpoint Compromise Investigation
 
 **Host:** DESKTOP-R39QKFP (Windows 10 Pro x64, build 19041) · **User:** lweber  
 **Analyst:** Miroslaw Lerch · **Type:** Lab investigation (simulated adversary activity)  
@@ -318,145 +318,145 @@ All screenshots are stored in the folder `screenshots/`. The figure number is th
 
 ### Acquisition and preparation
 
-**Figure 1 – Memory acquisition with VBoxManage dumpvmcore** (see 3.1)
+**Figure 1 – Memory acquisition with VBoxManage dumpvmcore** (see [3.1](#31-evidence-integrity))
 
 ![Figure 1](screenshots/01_memory_acquisition.png)
 
-**Figure 2 – Disk clone from the snapshot differencing disk** (see 3.1)
+**Figure 2 – Disk clone from the snapshot differencing disk** (see [3.1](#31-evidence-integrity))
 
 ![Figure 2](screenshots/02_disk_clone.png)
 
-**Figure 3 – SHA256 hashes of memory and disk image** (see 3.1)
+**Figure 3 – SHA256 hashes of memory and disk image** (see [3.1](#31-evidence-integrity))
 
 ![Figure 3](screenshots/03_evidence_hashes.png)
 
-**Figure 4 – Image mounted with Arsenal Image Mounter (write-temporary)** (see 3.1)
+**Figure 4 – Image mounted with Arsenal Image Mounter (write-temporary)** (see [3.1](#31-evidence-integrity))
 
 ![Figure 4](screenshots/04_image_mounted.png)
 
-**Figure 5 – KAPE triage output** (see 3.1)
+**Figure 5 – KAPE triage output** (see [3.1](#31-evidence-integrity))
 
 ![Figure 5](screenshots/05_kape_triage.png)
 
 ### Registry and user behavior
 
-**Figure 6 – SAM – account art-test (RID 1002), created 19:10:07** (see 3.4)
+**Figure 6 – SAM – account art-test (RID 1002), created 19:10:07** (see [3.4](#34-account-creation))
 
 ![Figure 6](screenshots/06_sam_art-test_account.png)
 
-**Figure 7 – SAM – Administrators group incl. art-test** (see 3.4)
+**Figure 7 – SAM – Administrators group incl. art-test** (see [3.4](#34-account-creation))
 
 ![Figure 7](screenshots/07_sam_administrators_group.png)
 
-**Figure 8 – Defender real-time protection disabled** (see 3.2)
+**Figure 8 – Defender real-time protection disabled** (see [3.2](#32-timeline-of-the-attack))
 
 ![Figure 8](screenshots/08_defender_settings.png)
 
-**Figure 9 – ShellBags Explorer – C:\AtomicRedTeam (logs replayed)** (see 3.2)
+**Figure 9 – ShellBags Explorer – C:\AtomicRedTeam (logs replayed)** (see [3.2](#32-timeline-of-the-attack))
 
 ![Figure 9](screenshots/09_shellbags_atomicredteam.png)
 
-**Figure 10 – BAM – RegRipper (no logs) vs. Registry Explorer (logs replayed)** (see 3.7)
+**Figure 10 – BAM – RegRipper (no logs) vs. Registry Explorer (logs replayed)** (see [3.7](#37-program-execution))
 
 ![Figure 10](screenshots/10_bam_comparison.png)
 
 ### NTFS and execution
 
-**Figure 11 – MFT record of ART-attack.ps1 ($SI / $FN)** (see 3.3)
+**Figure 11 – MFT record of ART-attack.ps1 ($SI / $FN)** (see [3.3](#33-initial-execution))
 
 ![Figure 11](screenshots/11_mft_art-attack_ps1.png)
 
-**Figure 12 – PSReadLine ConsoleHost_history.txt** (see 3.3)
+**Figure 12 – PSReadLine ConsoleHost_history.txt** (see [3.3](#33-initial-execution))
 
 ![Figure 12](screenshots/12_powershell_history.png)
 
-**Figure 13 – USN Journal – new .pf files in the attack window** (see 3.7)
+**Figure 13 – USN Journal parsed with MFTECmd (213,432 entries)** (see [3.7](#37-program-execution))
 
 ![Figure 13](screenshots/13_usn_new_prefetch_files.png)
 
-**Figure 14 – PECmd – ATOMICSERVICE.EXE (run count, last run, path)** (see 3.7)
+**Figure 14 – PECmd – ATOMICSERVICE.EXE (run count, last run, path)** (see [3.7](#37-program-execution))
 
 ![Figure 14](screenshots/14_pecmd_atomicservice.png)
 
-**Figure 15 – Prefetch timeline 19:09–19:25** (see 3.7)
+**Figure 15 – Prefetch timeline 19:09–19:25** (see [3.7](#37-program-execution))
 
 ![Figure 15](screenshots/15_prefetch_timeline.png)
 
 ### Persistence
 
-**Figure 16 – HKCU Run key "Atomic Red Team"** (see 3.6)
+**Figure 16 – HKCU Run key "Atomic Red Team"** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 16](screenshots/16_hkcu_run_key.png)
 
-**Figure 17 – batstartup.bat in the StartUp folder** (see 3.6)
+**Figure 17 – batstartup.bat in the StartUp folder** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 17](screenshots/17_startup_batstartup.png)
 
-**Figure 18 – Service AtomicTestService_CMD** (see 3.6)
+**Figure 18 – Service AtomicTestService_CMD** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 18](screenshots/18_service_atomictestservice.png)
 
-**Figure 19 – TaskCache – T1053_005 tasks** (see 3.6)
+**Figure 19 – TaskCache – T1053_005 tasks** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 19](screenshots/19_scheduled_tasks_taskcache.png)
 
-**Figure 20 – Task XML triggers (LogonTrigger / BootTrigger)** (see 3.6)
+**Figure 20 – Task XML triggers (LogonTrigger / BootTrigger)** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 20](screenshots/20_scheduled_tasks_triggers.png)
 
-**Figure 21 – Autoruns – Logon and Services** (see 3.6)
+**Figure 21 – Autoruns – Logon and Services** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 21](screenshots/21_autoruns.png)
 
 ### Event logs
 
-**Figure 22 – Defender events 5000 / 5001** (see 3.2)
+**Figure 22 – Defender events 5000 / 5001** (see [3.2](#32-timeline-of-the-attack))
 
 ![Figure 22](screenshots/22_defender_5000_5001.png)
 
-**Figure 23 – System 7045 – service installed** (see 3.6)
+**Figure 23 – System 7045 – service installed** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 23](screenshots/23_system_7045.png)
 
-**Figure 24 – Security 4624 / 4672 – logon IDs** (see 3.11)
+**Figure 24 – Security 4624 / 4672 – logon IDs** (see [3.11](#311-alternative-explanations))
 
 ![Figure 24](screenshots/24_security_4624_4672.png)
 
-**Figure 25 – PowerShell 400 – PhishingAttachment.xlsm download** (see 3.5)
+**Figure 25 – PowerShell 400 – PhishingAttachment.xlsm download** (see [3.5](#35-execution-of-additional-payloads))
 
 ![Figure 25](screenshots/25_powershell_400_download.png)
 
-**Figure 26 – PowerShell 400 – Base64 payload in the registry** (see 3.5)
+**Figure 26 – PowerShell 400 – Base64 payload in the registry** (see [3.5](#35-execution-of-additional-payloads))
 
 ![Figure 26](screenshots/26_powershell_400_registry_payload.png)
 
-**Figure 27 – CyberChef – decoded payload** (see 3.5)
+**Figure 27 – CyberChef – decoded payload** (see [3.5](#35-execution-of-additional-payloads))
 
 ![Figure 27](screenshots/27_cyberchef_base64.png)
 
-**Figure 28 – PowerShell 400 – batstartup.bat copied to Startup folders** (see 3.6)
+**Figure 28 – PowerShell 400 – batstartup.bat copied to Startup folders** (see [3.6](#36-persistence-mechanisms))
 
 ![Figure 28](screenshots/28_powershell_400_startup.png)
 
-**Figure 29 – PowerShell 400 – mavinject injection into notepad** (see 3.5)
+**Figure 29 – PowerShell 400 – mavinject injection into notepad** (see [3.5](#35-execution-of-additional-payloads))
 
 ![Figure 29](screenshots/29_powershell_400_mavinject.png)
 
 ### Memory and file checks
 
-**Figure 30 – Volatility windows.info – capture time 19:22:19** (see 3.8)
+**Figure 30 – Volatility windows.info – capture time 19:22:19** (see [3.8](#38-memory-analysis))
 
 ![Figure 30](screenshots/30_vol_windows_info.png)
 
-**Figure 31 – Volatility windows.pstree – attack processes** (see 3.8)
+**Figure 31 – Volatility windows.pstree – attack processes** (see [3.8](#38-memory-analysis))
 
 ![Figure 31](screenshots/31_vol_pstree.png)
 
-**Figure 32 – AtomicService.exe dump and strings** (see 3.8)
+**Figure 32 – AtomicService.exe dump and strings** (see [3.8](#38-memory-analysis))
 
 ![Figure 32](screenshots/32_vol_atomicservice_dump.png)
 
-**Figure 33 – SHA1 of AtomicService.exe and file checks** (see 3.10)
+**Figure 33 – SHA1 of AtomicService.exe and file checks** (see [3.10](#310-indicators-of-compromise))
 
 ![Figure 33](screenshots/33_file_checks_sha1.png)
 
@@ -535,4 +535,3 @@ T1078.003 (Valid Accounts: Local Accounts) does **not** apply. The art-test acco
 - Block or alert on `mavinject.exe`.
 - Forward Sysmon, Security, System and PowerShell logs to the SIEM and add the detections in section 7.
 - Always analyse registry hives together with their transaction logs. In this case the service, the scheduled tasks, the BAM entries and the ShellBags were only visible after the logs were replayed.
-````
